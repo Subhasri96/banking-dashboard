@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Register</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+    }
+    input, button {
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      display: block;
+      width: 250px;
+    }
+    button {
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0b7dda;
+    }
+  </style>
+</head>
+<body>
+  <h1>Register</h1>
+
+  <input id="email" type="email" placeholder="Email" />
+  <input id="password" type="password" placeholder="Password" />
+  <button onclick="register()">Register</button>
+
+  <script>
+    async function register() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      if (!email || !password) {
+        alert("Both fields are required.");
+        return;
+      }
+
+      try {
+        const res = await fetch("http://127.0.0.1:5000/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include", // ✅ important for cookies/session
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert("Registration successful!");
+          window.location.href = "login.html";
+        } else {
+          alert(data.error || "Registration failed.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Unable to connect to backend.");
+      }
+    }
+  </script>
+</body>
+</html>

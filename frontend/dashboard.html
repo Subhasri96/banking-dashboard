@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Banking Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+    }
+    #transactions {
+      margin-top: 20px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to Your Banking Dashboard</h1>
+
+  <h2>Current Balance: $<span id="balance">1000.00</span></h2>
+
+  <div id="transactions">
+    <h3>Transaction History</h3>
+    <ul id="transaction-list"></ul>
+  </div>
+
+  <h3>Add New Transaction</h3>
+  <input type="text" id="description" placeholder="Description" /><br /><br />
+  <input type="number" id="amount" placeholder="Amount" /><br /><br />
+  <input type="date" id="date" /><br /><br />
+  <select id="type">
+    <option value="credit">Credit</option>
+    <option value="debit">Debit</option>
+  </select><br /><br />
+  <button onclick="addTransaction()">Add Transaction</button>
+  <button onclick="logout()">Logout</button>
+
+  <p id="message" style="color: green;"></p>
+
+  <script>
+    // Load dashboard data
+    window.onload = function () {
+      fetch("http://127.0.0.1:5000/dashboard-data", {
+        method: "GET",
+        credentials: "include"
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          window.location.href = "login.html";
+          return;
+        }
+        document.getElementById("balance").textContent = data.balance.toFixed(2);
+        const list = document.getElementById("transaction-list");
+        list.innerHTML = "";
+        data.transactions.forEach(t => {
+          const li = document.createElement("li");
+          li.textContent = `${t.date} - ${t.description} (${t.type}): $${t.amount.toFixed(2)}`;
+          list.appendChild(li);
+        });
+      });
+    };
+
+    function addTransaction() {
+      const description = document.getElementById("description").value;
+      const amount = parseFloat(document.getElementById("amount").value);
+      const date = document.getElementById("date").value;
+      const type = document.getElementById("type").value;
+
+      if (!description || !amount || !date || !type) {
+        alert("All fields are required.");
+        return;
+      }
+
+      fetch("http://127.0.0.1:5000/add-transaction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ description, amount, date, type })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("message").textContent = data.message;
+        setTimeout(() => {
+          document.getElementById("message").textContent = "";
+          window.location.reload();
+        }, 1500);
+      });
+    }
+
+    function logout() {
+      fetch("http://127.0.0.1:5000/logout", {
+        method: "POST",
+        credentials: "include"
+      }).then(() => {
+        window.location.href = "login.html";
+      });
+    }
+  </script>
+</body>
+</html>
